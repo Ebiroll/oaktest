@@ -48,3 +48,121 @@ int main(int argc, char** argv) {
     }
     return 0;
 }
+
+#if 0
+
+
+#define WIDTH 640
+#define HEIGHT 480
+
+static void dumpHWFeatures(bool showAll = false)
+{
+    std::cout << "OpenCV's HW features list:" << std::endl;
+    int count = 0;
+    for (int i = 0; i < CV_HARDWARE_MAX_FEATURE; i++)
+    {
+        cv::String name = cv::getHardwareFeatureName(i);
+        if (name.empty())
+            continue;
+        bool enabled = cv::checkHardwareSupport(i);
+        if (enabled)
+            count++;
+        if (enabled || showAll)
+        {
+            printf("    ID=%3d (%s) -> %s\n", i, name.c_str(), enabled ? "ON" : "N/A");
+        }
+    }
+    std::cout << "Total available: " << count << std::endl;
+
+}
+
+
+static uint8_t frameData[720 * 1280];
+
+
+// Not sure if this is the best way to convert a cv::Mat to a uint8_t* array
+static uint8_t* get8BitGreyscale(const cv::Mat& frame, cv::Mat& outputGray)
+{
+    // Ensure the output matrix is empty
+    outputGray.release();
+
+    // Convert the input frame to grayscale if it's not already
+    if (frame.channels() == 3 || frame.channels() == 4) {
+        cv::cvtColor(frame, outputGray, cv::COLOR_BGR2GRAY);
+    }
+    else {
+        outputGray = frame.clone();
+    }
+
+    // Now, outputGray is an 8-bit single-channel image
+    cv::Mat frameMat = outputGray;
+    if (frameMat.rows * frameMat.cols > 720 * 1280) {
+        return frameData;
+    }
+
+    for (int i = 0; i < frameMat.rows; i++) {
+        for (int j = 0; j < frameMat.cols; j++) {
+            frameData[i * frameMat.cols + j] = frameMat.at<uchar>(i, j);
+        }
+    }
+
+    return frameData;
+}
+
+// OpenCV Video Capture
+int main(int argc, char** argv) {
+
+    int frameNo=0;
+
+    cv::VideoCapture cap(0);
+
+    dumpHWFeatures();
+
+    // Check if the camera opened successfully
+    if (!cap.isOpened()) {
+        std::cerr << "Error: Unable to open the camera" << std::endl;
+        return -1;
+    }
+
+    cv::Mat frame;
+
+    cap >> frame;
+
+    // If the frame is empty, skip this.
+    if (!frame.empty()) {
+        printf("Image width: %d, Image height: %d\n", frame.cols, frame.rows);
+    }
+
+    cv::Mat outputGray;
+
+    while (true) {
+        // Capture frame-by-frame from the camera
+        cap >> frame;
+
+        // If the frame is empty, break immediately
+        if (frame.empty())
+            break;
+
+        // get8BitGreyscale(frame, outputGray);
+        // Convert the frame to a cv::Mat
+        cv::Mat frameMat = frame; // outputGray;
+
+        // Display the resulting frame
+
+        cv::imshow("Video", frameMat);
+        
+        // Wait for 1 ms until any key is pressed
+        // If 'q' or 'Q' is pressed, break from the loop
+        char key = (char)cv::waitKey(1);
+        if (key == 'q' || key == 'Q')
+            break;
+    }
+
+    // When everything done, release the video capture and close all the frames
+    cap.release();
+    cv::destroyAllWindows();
+
+    return 0;
+}
+
+#endif
