@@ -14,6 +14,9 @@ Do this
  cd build; cmake ..
 
 
- No need to build, 
-# cmake -S. -Bbuild
-# cmake  --build build
+ No need to build depthai, 
+   cmake -S. -Bbuild
+   cmake  --build build
+
+# Head pose
+The repository doubles as head pose three.js with test.html

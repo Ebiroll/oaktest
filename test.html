@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>3D Head Pose Visualization</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <div id="slider-container">
+        <input type="range" id="pose-slider" min="0" max="6" value="0">
+    </div>
+
+    <script type="importmap">
+        {
+          "imports": {
+            "three": "./js/three.module.js",
+            "GLTFLoader": "./js/GLTFLoader.js"
+          }
+        }
+        </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'GLTFLoader';
+
+        // Pose data as provided
+        const poses = [
+        { "box": {"top": 0.450745, "bottom": 0.831995, "left": 0.376756 , "right": 0.662882 },  "headPose": {"x": -0.061252, "y": -0.112106, "z": -0.061252} , "rotation": [[ 0.740167, -0.419481, -0.525536],[ -0.026263, 0.762925, -0.645953 ],[ 0.671910, 0.491915, 0.553675 ]]},
+        { "box": {"top": 0.420503, "bottom": 0.726753, "left": 0.287456 , "right": 0.517534 },  "headPose": {"x": -0.075952, "y": -0.129021, "z": -0.075952} , "rotation": [[ 0.867632, -0.481819, -0.122739],[ 0.471922, 0.875743, -0.101805 ],[ 0.156540, 0.030406, 0.987203 ]]},
+        { "box": {"top": 0.439216, "bottom": 0.805883, "left": 0.435304 , "right": 0.710670 },  "headPose": {"x": -0.056725, "y": -0.117354, "z": -0.056725} , "rotation": [[ 0.629282, -0.536513, -0.562279],[ -0.152389, 0.624264, -0.766206 ],[ 0.762090, 0.567845, 0.311080 ]]},
+        { "box": {"top": 0.399457, "bottom": 0.883152, "left": 0.361339 , "right": 0.726093 },  "headPose": {"x": 0.002836, "y": -0.032376, "z": 0.002836}, "rotation": [[ 0.956411, -0.162601, -0.242568],[ 0.074343, 0.938846, -0.336216 ],[ 0.282403, 0.303527, 0.910011 ]]},
+        { "box": {"top": 0.399457, "bottom": 0.883152, "left": 0.361339 , "right": 0.726093 },  "headPose": {"x": 0.002836, "y": -0.032376, "z": 0.002836}, "rotation": [[ 0.956411, -0.162601, -0.242568],[ 0.074343, 0.938846, -0.336216 ],[ 0.282403, 0.303527, 0.910011 ]]},
+        { "box": {"top": 0.368833, "bottom": 0.905970, "left": 0.325547 , "right": 0.730921 },  "headPose": {"x": -0.004546, "y": -0.030655, "z": -0.004546}, "rotation": [[ 0.970398, -0.091802, -0.223384],[ 0.048997, 0.980538, -0.190117 ],[ 0.236490, 0.173544, 0.956010 ]]},
+        { "box": {"top": 0.368833, "bottom": 0.905970, "left": 0.325547 , "right": 0.730921 },  "headPose": {"x": -0.023045, "y": -0.029062, "z": -0.023045}, "rotation": [[ 0.784159, 0.352807, 0.510512],[ -0.335212, 0.933133, -0.129981 ],[ -0.522234, -0.069204, 0.849990 ]]}
+       ];
+
+        let scene, camera, renderer, headModel;
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Load 3D head model
+
+            const loader = new GLTFLoader();
+                loader.load('head.glb', function(gltf) {
+                headModel = gltf.scene;
+                scene.add(headModel);
+                camera.position.z = 5;
+                camera.fov = 50; // Adjust field of view
+
+                headModel.scale.set(4.0, 4.0, 4.0);
+                console.log(headModel.position); // Log 
+
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+                scene.add(ambientLight);
+
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+                directionalLight.position.set(0, 1, 1);
+                directionalLight.intensity = 1; // Increase intensity
+                directionalLight.position.set(5, 5, 5); // Adjust position to better light the model
+
+                scene.add(directionalLight);
+                updatePose(0); // Initialize with the first pose
+            });
+            // Adjust camera and lighting as necessary
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+
+        function updatePose(index) {
+            const pose = poses[index];
+            // Apply pose and rotation to headModel
+            if (headModel) {
+                //headModel.position.set(pose.headPose.x, pose.headPose.y, pose.headPose.z);
+
+                // Assuming you need to convert the rotation data to Euler angles or use as is
+                // This is a placeholder for the actual conversion logic
+                //const euler = new THREE.Euler(pose.rotation[0], pose.rotation[1], pose.rotation[2], 'XYZ');
+                //headModel.rotation.copy(euler);
+
+                // If your data is actually a rotation matrix or quaternion, use the appropriate Three.js methods to apply it
+                // For example, if the rotation is a quaternion:
+                //const quaternion = new THREE.Quaternion().fromArray(pose.rotation);
+                //headModel.quaternion.copy(quaternion);
+
+                
+                const rotationMatrix = new THREE.Matrix4();
+
+                // Set the values of the rotation matrix from the pose.rotation
+                rotationMatrix.set(
+                pose.rotation[0][0], pose.rotation[0][1], pose.rotation[0][2], 0,
+                pose.rotation[1][0], pose.rotation[1][1], pose.rotation[1][2], 0,
+                pose.rotation[2][0], pose.rotation[2][1], pose.rotation[2][2], 0,
+                0, 0, 0, 1
+                );
+
+                // Inverse the rotation matrix
+                //rotationMatrix.set(rotationMatrix.getInverse(rotationMatrix));
+
+                // Create a Quaternion from the rotation matrix
+                const quaternion = new THREE.Quaternion().setFromRotationMatrix(rotationMatrix);
+
+                // Invert the quaternion to apply the rotation in the opposite direction
+                quaternion.invert();
+
+
+                // Apply the quaternion to your object
+                headModel.quaternion.copy(quaternion);
+            }
+}
+        document.getElementById('pose-slider').addEventListener('input', function() {
+            updatePose(this.value);
+        });
+
+        init();
+        animate();
+    </script>
+</body>
+</html>
